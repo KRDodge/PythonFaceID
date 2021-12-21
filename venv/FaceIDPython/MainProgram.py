@@ -16,18 +16,14 @@ form_class = uic.loadUiType("MainView.ui")[0]
 class GetImage:
     def CutImage(path):
         img_array = np.fromfile(path, np.uint8)
-        print(path)
         img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-        print(img_array)
         height, width, channels = img.shape
         if(width > 1250):
-            print(width)
             resize = 1250 / width
-            img = cv2.resize(img, dsize=None, fx=resize, fy=resize, interpolation=cv2.INTER_LINEAR)
+            img = cv2.resize(img, dsize=None, fx=resize, fy=resize)
         if(height > 800):
-            print(height)
             resize = 800 / height
-            img = cv2.resize(img, dsize=None, fx=resize, fy=resize, interpolation=cv2.INTER_LINEAR)
+            img = cv2.resize(img, dsize=None, fx=resize, fy=resize)
         return img
 
 class MainView(QWidget, form_class) :
@@ -36,6 +32,7 @@ class MainView(QWidget, form_class) :
         self.setupUi(self)
         self.FileDialogButton.clicked.connect(self.FileDialogButton_clicked)
         self.LearnButton.clicked.connect(self.LearnButton_clicked)
+        self.DetectButton.clicked.connect(self.DetectButton_clicked)
         self.TestButton.clicked.connect(self.TestButton_clicked)
 
 
@@ -45,41 +42,62 @@ class MainView(QWidget, form_class) :
             "Select 7z or image files to open",
             os.getcwd(),
             "files (*.7z *.png *.bmp *.jpg)")[0]
+        if(file == ''):
+            print('No Path')
+            return
+
         self.FilePathLineEdit.setText(file)
-        print(0)
         img = GetImage.CutImage(file)
-        img = Detector.DetectFaceID.imageDetctor(img, 0)
+        img = Detector.DetectFaceID.imageShower(img)
         h,w,c = img.shape
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         qImg = QtGui.QImage(img.data, w, h, w * c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         self.ImageLabel.setPixmap(pixmap)
-        #thread = FileOpenThread(self)
-        #thread.start()
 
 
     def LearnButton_clicked(self):
-        file = self.FilePathLineEdit.text()
         id = self.IDLineEdit.text()
-        if(file == "" or id == ""):
+        if(id == ''):
             print('No Path or ID')
-        else:
-            img = GetImage.CutImage(file)
-            Detector.DetectFaceID.ReadImageFile(img, id)
+            return
+
+        Learner.LearnFaceID.learnImage(id)
 
 
     def TestButton_clicked(self):
+        id = self.IDLineEdit.text()
+        file = self.FilePathLineEdit.text()
+        if (file == '' or id == ''):
+            print('No Path or ID')
+            return
+
+        yml = "ymldata/" + str(id) + '.yml'
+        if os.path.isfile(yml) == False:
+            print('false')
+            return
+
+        img = GetImage.CutImage(file)
+        img, result = Recognizer.RecognizeFaceID.recognizeFaceByImage(img,id)
+
+        print(result)
+
+        h, w, c = img.shape
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        qImg = QtGui.QImage(img.data, w, h, w * c, QtGui.QImage.Format_RGB888)
+        pixmap = QtGui.QPixmap.fromImage(qImg)
+        self.ImageLabel.setPixmap(pixmap)
+
+
+    def DetectButton_clicked(self):
         file = self.FilePathLineEdit.text()
         id = self.IDLineEdit.text()
-        if (file == "" or id == ""):
+        if (file == '' or id == ''):
             print('No Path or ID')
-        else:
-            img = GetImage.CutImage(file)
-            Recognizer.RecognizeFaceID.recognizeFaceByImage(img,id)
+            return
 
-    def SetImage(self):
-        self.ImageLabel
-
+        img = GetImage.CutImage(file)
+        img = Detector.DetectFaceID.imageDetctor(img, id)
 
 if __name__ == "__main__" :
     app = QApplication(sys.argv)

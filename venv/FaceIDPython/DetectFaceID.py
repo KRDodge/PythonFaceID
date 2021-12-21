@@ -4,7 +4,7 @@ from PIL import Image
 
 class DetectFaceID:
 
-    cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+    cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     file_count = 0;
 
     def ReadVideoFile(filePath, id):
@@ -28,7 +28,7 @@ class DetectFaceID:
             for (x, y, w, h) in faces:
                 cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                 DetectFaceID.file_count += 1
-                cv2.imwrite("dataset/" + str(id) + '/' + str(DetectFaceID.file_count) + ".jpg", gray[y:y + h, x:x + w])
+                cv2.imwrite("dataset/" + str(id) + '/' + 'User.' + str(face_id) + '.' + str(DetectFaceID.file_count) + ".jpg", gray[y:y + h, x:x + w])
                 cv2.imshow('image', img)
             k = cv2.waitKey(100) & 0xff
             if k == 27:
@@ -46,11 +46,11 @@ class DetectFaceID:
         if(DetectFaceID.file_count < 11):
             for (x, y, w, h) in faces:
                 DetectFaceID.file_count += 1
-                cv2.imwrite("dataset/" + str(id) + '/' + str(DetectFaceID.file_count) + ".jpg", gray[y:y + h, x:x + w])
+                cv2.imwrite("dataset/" + str(id) + '/' + 'User.' + str(face_id) + '.' + str(DetectFaceID.file_count) + ".jpg", gray[y:y + h, x:x + w])
 
         return img
 
-    def imageShower(img, id):
+    def imageShower(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = DetectFaceID.cascade.detectMultiScale(gray, 1.3, 5)
         for (x, y, w, h) in faces:
